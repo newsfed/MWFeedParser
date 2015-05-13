@@ -50,8 +50,8 @@
 
 // Properties
 @synthesize url, request, delegate;
-@synthesize urlConnection, asyncData, asyncTextEncodingName, connectionType;
-@synthesize feedParseType, feedParser, currentPath, currentText, currentElementAttributes, item, info;
+@synthesize urlConnection, asyncData, asyncTextEncodingName, connectionType, customKeys;
+@synthesize feedParseType, feedParser, currentPath, currentText, currentElementAttributes, item, info, tmpDictionary;
 @synthesize pathOfElementWithXHTMLType;
 @synthesize stopped, failed, parsing;
 
@@ -426,7 +426,14 @@
         // Adjust path
         self.currentPath = [currentPath stringByAppendingPathComponent:qualifiedName];
         self.currentElementAttributes = attributeDict;
+        NSLog(@"elementName = %@", elementName);
+        NSLog(@"qualifiedName = %@", qualifiedName);
+        NSLog(@"attributeDict = %@", attributeDict);
         
+        if ([elementName isEqualToString:@"content"] && [qualifiedName isEqualToString:@"media:content"]){
+            [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item];
+        }
+
         // Parse content as structure (Atom feeds with element type="xhtml")
         // - Use elementName not qualifiedName to ignore XML namespaces for XHTML entities
         if (parseStructureAsContent) {
@@ -515,6 +522,7 @@
             // New item
             MWFeedItem *newItem = [[MWFeedItem alloc] init];
             self.item = newItem;
+            tmpDictionary = [[NSMutableDictionary alloc] init];
             
             // Return
             return;
@@ -602,7 +610,16 @@
                         else if ([currentPath isEqualToString:@"/rss/channel/item/content:encoded"]) { if (processedText.length > 0) item.content = processedText; processed = YES; }
                         else if ([currentPath isEqualToString:@"/rss/channel/item/pubDate"]) { if (processedText.length > 0) item.date = [NSDate dateFromInternetDateTimeString:processedText formatHint:DateFormatHintRFC822]; processed = YES; }
                         else if ([currentPath isEqualToString:@"/rss/channel/item/enclosure"]) { [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item]; processed = YES; }
-                        else if ([currentPath isEqualToString:@"/rss/channel/item/dc:date"]) { if (processedText.length > 0) item.date = [NSDate dateFromInternetDateTimeString:processedText formatHint:DateFormatHintRFC3339]; processed = YES; }
+                        else if ([currentPath isEqualToString:@"/rss/channel/item/dc:date"]) { if (processedText.length > 0) item.date = [NSDate dateFromInternetDateTimeString:processedText formatHint:DateFormatHintRFC3339]; processed = YES;
+                        }
+                        else if ([currentPath isEqualToString:@"/rss/channel/item/media:content"]) { [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item]; processed = YES; }
+
+                        else if ([customKeys count]) {
+                           [customKeys enumerateObjectsUsingBlock:^(id key, NSUInteger idx, BOOL *stop) {
+                               NSString *path = [NSString stringWithFormat:@"/rss/channel/item/%@", key];
+                               if ([currentPath isEqualToString: path]) { if (processedText.length > 0) [tmpDictionary setValue:processedText forKey:key]; }
+                                }];
+                        }
                     }
                     
                     // Info
@@ -629,7 +646,14 @@
                         else if ([currentPath isEqualToString:@"/rdf:RDF/item/dc:identifier"]) { if (processedText.length > 0) item.identifier = processedText; processed = YES; }
                         else if ([currentPath isEqualToString:@"/rdf:RDF/item/dc:creator"]) { if (processedText.length > 0) item.author = processedText; processed = YES; }
                         else if ([currentPath isEqualToString:@"/rdf:RDF/item/dc:date"]) { if (processedText.length > 0) item.date = [NSDate dateFromInternetDateTimeString:processedText formatHint:DateFormatHintRFC3339]; processed = YES; }
-                        else if ([currentPath isEqualToString:@"/rdf:RDF/item/enc:enclosure"]) { [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item]; processed = YES; }
+                        else if ([currentPath isEqualToString:@"/rdf:RDF/item/enc:enclosure"]) { [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item]; processed = YES;
+                        }
+                        else if ([customKeys count]) {
+                            [customKeys enumerateObjectsUsingBlock:^(id key, NSUInteger idx, BOOL *stop) {
+                                NSString *path = [NSString stringWithFormat:@"/rss/channel/item/%@", key];
+                                if ([currentPath isEqualToString: path]) { if (processedText.length > 0) [tmpDictionary setValue:processedText forKey:key]; }
+                            }];
+                        }
                     }
                     
                     // Info
@@ -658,6 +682,12 @@
                         else if ([currentPath isEqualToString:@"/feed/entry/dc:creator"]) { if (processedText.length > 0) item.author = processedText; processed = YES; }
                         else if ([currentPath isEqualToString:@"/feed/entry/published"]) { if (processedText.length > 0) item.date = [NSDate dateFromInternetDateTimeString:processedText formatHint:DateFormatHintRFC3339]; processed = YES; }
                         else if ([currentPath isEqualToString:@"/feed/entry/updated"]) { if (processedText.length > 0) item.updated = [NSDate dateFromInternetDateTimeString:processedText formatHint:DateFormatHintRFC3339]; processed = YES; }
+                        else if ([customKeys count]) {
+                            [customKeys enumerateObjectsUsingBlock:^(id key, NSUInteger idx, BOOL *stop) {
+                                NSString *path = [NSString stringWithFormat:@"/rss/channel/item/%@", key];
+                                if ([currentPath isEqualToString: path]) { if (processedText.length > 0) [tmpDictionary setValue:processedText forKey:key]; }
+                                }];
+                            }
                     }
                     
                     // Info
@@ -681,6 +711,11 @@
             if (((feedType == FeedTypeRSS || feedType == FeedTypeRSS1) && [qName isEqualToString:@"item"]) ||
                 (feedType == FeedTypeAtom && [qName isEqualToString:@"entry"])) {
                 
+                if([tmpDictionary count]) {
+                    item.customProperties = tmpDictionary;
+                    MWXMLLog(@"NSXMLParser: customProperty: %@ - %@", );
+                }
+
                 // Dispatch item to delegate
                 [self dispatchFeedItemToDelegate];
                 
@@ -874,6 +909,7 @@
 	NSString *encURL = nil, *encType = nil;
 	NSNumber *encLength = nil;
 	if (attributes) {
+        NSLog(@"attributes = %@", attributes);
 		switch (feedType) {
 			case FeedTypeRSS: { // http://cyber.law.harvard.edu/rss/rss.html#ltenclosuregtSubelementOfLtitemgt
 				// <enclosure>

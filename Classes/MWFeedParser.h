@@ -103,7 +103,7 @@ typedef enum { FeedTypeUnknown, FeedTypeRSS, FeedTypeRSS1, FeedTypeAtom } FeedTy
 	NSDictionary *currentElementAttributes;
 	MWFeedItem *item;
 	MWFeedInfo *info;
-	
+	NSArray *customKeys;
 }
 
 #pragma mark Public Properties
@@ -126,6 +126,9 @@ typedef enum { FeedTypeUnknown, FeedTypeRSS, FeedTypeRSS1, FeedTypeAtom } FeedTy
 // Whether parsing is in progress
 @property (nonatomic, readonly, getter=isParsing) BOOL parsing;
 
+
+@property (nonatomic, copy) NSArray *customKeys;
+
 #pragma mark Public Methods
 
 // Init MWFeedParser with a URL string
@@ -142,5 +145,7 @@ typedef enum { FeedTypeUnknown, FeedTypeRSS, FeedTypeRSS1, FeedTypeAtom } FeedTy
 
 // Returns the URL
 - (NSURL *)url;
+
+
 
 @end

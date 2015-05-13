@@ -46,6 +46,7 @@
 @property (nonatomic, strong) MWFeedItem *item;
 @property (nonatomic, strong) MWFeedInfo *info;
 @property (nonatomic, copy) NSString *pathOfElementWithXHTMLType;
+@property (nonatomic, retain) NSMutableDictionary *tmpDictionary;
 
 #pragma mark Private Methods
 
