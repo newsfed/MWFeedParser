@@ -426,9 +426,6 @@
         // Adjust path
         self.currentPath = [currentPath stringByAppendingPathComponent:qualifiedName];
         self.currentElementAttributes = attributeDict;
-        NSLog(@"elementName = %@", elementName);
-        NSLog(@"qualifiedName = %@", qualifiedName);
-        NSLog(@"attributeDict = %@", attributeDict);
         
         if ([elementName isEqualToString:@"content"] && [qualifiedName isEqualToString:@"media:content"]){
             [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item];
@@ -909,7 +906,6 @@
 	NSString *encURL = nil, *encType = nil;
 	NSNumber *encLength = nil;
 	if (attributes) {
-        NSLog(@"attributes = %@", attributes);
 		switch (feedType) {
 			case FeedTypeRSS: { // http://cyber.law.harvard.edu/rss/rss.html#ltenclosuregtSubelementOfLtitemgt
 				// <enclosure>
