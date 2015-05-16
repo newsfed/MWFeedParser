@@ -33,7 +33,7 @@
 
 @implementation MWFeedItem
 
-@synthesize identifier, title, link, date, updated, summary, content, author, enclosures, customProperties;
+@synthesize identifier, title, link, date, updated, summary, content, author, imageURL, enclosures, customProperties;
 
 #pragma mark NSObject
 
@@ -59,6 +59,7 @@
 		summary = [decoder decodeObjectForKey:@"summary"];
 		content = [decoder decodeObjectForKey:@"content"];
 		author = [decoder decodeObjectForKey:@"author"];
+        imageURL = [decoder decodeObjectForKey:@"imageURL"];
 		enclosures = [decoder decodeObjectForKey:@"enclosures"];
         customProperties = [decoder decodeObjectForKey:@"customProperties"];
 	}
@@ -74,6 +75,7 @@
 	if (summary) [encoder encodeObject:summary forKey:@"summary"];
 	if (content) [encoder encodeObject:content forKey:@"content"];
 	if (author) [encoder encodeObject:author forKey:@"author"];
+    if (imageURL) [encoder encodeObject:author forKey:@"imageURL"];
 	if (enclosures) [encoder encodeObject:enclosures forKey:@"enclosures"];
     if (customProperties) [encoder encodeObject:customProperties forKey:@"customProperties"];
 }

@@ -431,6 +431,11 @@
             [self createEnclosureFromAttributes:currentElementAttributes andAddToItem:item];
         }
 
+        if ([elementName isEqualToString:@"thumbnail"] && [qualifiedName isEqualToString:@"media:thumbnail"]){
+            if (![[attributeDict objectForKey:@"height"] isEqualToString:@"480"])
+                item.imageURL = [attributeDict objectForKey:@"url"];
+        }
+
         // Parse content as structure (Atom feeds with element type="xhtml")
         // - Use elementName not qualifiedName to ignore XML namespaces for XHTML entities
         if (parseStructureAsContent) {
