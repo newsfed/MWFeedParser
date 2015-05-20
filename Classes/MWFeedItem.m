@@ -75,7 +75,7 @@
 	if (summary) [encoder encodeObject:summary forKey:@"summary"];
 	if (content) [encoder encodeObject:content forKey:@"content"];
 	if (author) [encoder encodeObject:author forKey:@"author"];
-    if (imageURL) [encoder encodeObject:author forKey:@"imageURL"];
+    if (imageURL) [encoder encodeObject:imageURL forKey:@"imageURL"];
 	if (enclosures) [encoder encodeObject:enclosures forKey:@"enclosures"];
     if (customProperties) [encoder encodeObject:customProperties forKey:@"customProperties"];
 }
