@@ -916,7 +916,7 @@
 				// <enclosure>
 				encURL = [attributes objectForKey:@"url"];
 				encType = [attributes objectForKey:@"type"];
-				encLength = [NSNumber numberWithLongLong:[((NSString *)[attributes objectForKey:@"length"]) longLongValue]];
+				encLength = [NSNumber numberWithLongLong:[((NSString *)[attributes objectForKey:@"duration"]) longLongValue]];
 				break;
 			}
 			case FeedTypeRSS1: { // http://www.xs4all.nl/~foz/mod_enclosure.html
